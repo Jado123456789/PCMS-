@@ -9,24 +9,15 @@
 
 <div class="container-fluid py-4">
   @if (session('success'))
-    <div class="alert alert-success border-0 shadow-sm">
-      {{ session('success') }}
-    </div>
+    <div class="alert alert-success border-0 shadow-sm">{{ session('success') }}</div>
   @endif
-
   @error('payment_error')
-    <div class="alert alert-danger border-0 shadow-sm">
-      {{ $message }}
-    </div>
-  @enderror
-
-  @error('message_er')
-    <div class="alert alert-warning border-0 shadow-sm">
-      {{ $message }}
-    </div>
+    <div class="alert alert-danger border-0 shadow-sm">{{ $message }}</div>
   @enderror
 
   <div class="row g-4">
+
+    {{-- Top-up Form --}}
     <div class="col-lg-4">
       <div class="card h-100">
         <div class="card-header pb-0 border-0">
@@ -47,33 +38,26 @@
                 <span class="input-group-text"><i class="fas fa-phone text-success"></i></span>
                 <input type="text" name="phone" value="{{ old('phone', Auth::user()->telephone) }}" class="form-control" placeholder="078xxxxxxx">
               </div>
-              @error('phone')
-                <div class="text-danger text-sm mt-1">{{ $message }}</div>
-              @enderror
+              @error('phone')<div class="text-danger text-sm mt-1">{{ $message }}</div>@enderror
             </div>
-
             <div class="mb-3">
-              <label class="form-label">Amount</label>
+              <label class="form-label">Amount (RWF)</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-money-bill-wave text-warning"></i></span>
                 <input type="text" name="amount" value="{{ old('amount') }}" class="form-control" placeholder="Enter amount in RWF">
               </div>
-              @error('amount')
-                <div class="text-danger text-sm mt-1">{{ $message }}</div>
-              @enderror
+              @error('amount')<div class="text-danger text-sm mt-1">{{ $message }}</div>@enderror
             </div>
-
             <div class="bg-light border rounded-3 p-3 mb-3">
               <div class="d-flex justify-content-between mb-2">
                 <span class="text-sm">Current balance</span>
                 <strong>{{ number_format($currentUnit, 2) }} kWh</strong>
               </div>
               <div class="d-flex justify-content-between">
-                <span class="text-sm">Successful top-ups</span>
+                <span class="text-sm">Total paid (successful)</span>
                 <strong>RWF {{ number_format($totalPayments, 0) }}</strong>
               </div>
             </div>
-
             <button type="submit" class="btn bg-gradient-primary w-100 mb-0">
               <i class="fas fa-plus me-2"></i>Submit Payment
             </button>
@@ -82,26 +66,48 @@
       </div>
     </div>
 
+    {{-- Transaction History + Stats --}}
     <div class="col-lg-8">
-      <div class="card mb-4">
+
+      {{-- Stats --}}
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-body py-3">
+              <p class="text-sm text-uppercase text-muted mb-1">Successful</p>
+              <h4 class="mb-0 text-success">{{ $successfulPaymentsCount }}</h4>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-body py-3">
+              <p class="text-sm text-uppercase text-muted mb-1">Pending</p>
+              <h4 class="mb-0 text-warning">{{ $pendingPaymentsCount }}</h4>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-body py-3">
+              <p class="text-sm text-uppercase text-muted mb-1">Failed</p>
+              <h4 class="mb-0 text-danger">{{ $failedPaymentsCount }}</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {{-- Recent Transactions --}}
+      <div class="card">
         <div class="card-header pb-0">
-          <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+          <div class="d-flex justify-content-between align-items-center">
             <div>
-              <p class="text-sm text-uppercase text-muted mb-1">Payment</p>
-              <h5 class="mb-0">{{ $selectedDate ? 'Payments for ' . \Carbon\Carbon::parse($selectedDate)->format('M d, Y') : 'Payment History' }}</h5>
+              <p class="text-sm text-uppercase text-muted mb-1">Recent</p>
+              <h5 class="mb-0">Last 10 Transactions</h5>
             </div>
-            <form method="GET" action="{{ route('payments') }}" class="d-flex align-items-center gap-2">
-              <input type="date" name="date" class="form-control form-control-sm" value="{{ $selectedDate }}" max="{{ now()->toDateString() }}">
-              <button type="submit" class="btn btn-sm bg-gradient-primary mb-0">View</button>
-              @if ($selectedDate)
-                <a href="{{ route('payments') }}" class="btn btn-sm btn-outline-secondary mb-0">All</a>
-              @endif
-            </form>
-            <div class="d-flex gap-2">
-              <a href="{{ route('bills') }}" class="btn btn-outline-dark btn-sm mb-0">
-                <i class="fas fa-file-invoice me-2"></i>Open Billing
-              </a>
-            </div>
+            <a href="{{ route('bills') }}" class="btn btn-sm btn-outline-primary mb-0">
+              <i class="fas fa-chart-bar me-1"></i> Monthly Billing
+            </a>
           </div>
         </div>
         <div class="card-body px-0 pt-0 pb-2">
@@ -110,65 +116,42 @@
               <thead>
                 <tr>
                   <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Date</th>
-                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Transaction ID</th>
                   <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Amount</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Units</th>
                   <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Status</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Invoice</th>
                 </tr>
               </thead>
               <tbody>
-                @forelse($reportRows as $row)
+                @forelse($bills as $bill)
                   @php
-                    $statusClass = $row->status === 'success'
+                    $statusClass = $bill->transaction_status === 'success'
                       ? 'bg-gradient-success'
-                      : ($row->status === 'pending' ? 'bg-gradient-warning' : 'bg-gradient-danger');
+                      : ($bill->transaction_status === 'pending' ? 'bg-gradient-warning' : 'bg-gradient-danger');
                   @endphp
                   <tr>
                     <td>
                       <div class="d-flex px-3 py-2 flex-column">
-                        <h6 class="mb-0 text-sm">{{ $row->date->format('M d, Y') }}</h6>
-                        <span class="text-xs text-secondary">{{ $row->date->format('H:i') }}</span>
+                        <h6 class="mb-0 text-sm">{{ \Carbon\Carbon::parse($bill->created_at)->format('M d, Y') }}</h6>
+                        <span class="text-xs text-secondary">{{ \Carbon\Carbon::parse($bill->created_at)->format('H:i') }}</span>
                       </div>
                     </td>
-                    <td class="text-sm font-weight-bold">#{{ $row->transaction_id }}</td>
-                    <td class="text-sm">RWF {{ number_format($row->amount, 0) }}</td>
+                    <td class="text-sm font-weight-bold">RWF {{ number_format($bill->amount, 0) }}</td>
+                    <td class="text-sm">{{ number_format($bill->unit ?? ($bill->amount * 0.01), 2) }} kWh</td>
+                    <td><span class="badge badge-sm {{ $statusClass }}">{{ ucfirst($bill->transaction_status) }}</span></td>
                     <td>
-                      <span class="badge badge-sm {{ $statusClass }}">{{ ucfirst($row->status) }}</span>
+                      <a href="{{ route('invoices.show', $bill->transaction_id) }}" class="btn btn-link text-primary text-gradient px-2 mb-0">
+                        <i class="fas fa-eye me-1"></i>View
+                      </a>
                     </td>
                   </tr>
                 @empty
                   <tr>
-                    <td colspan="4" class="text-center text-muted py-4">No payment data available yet.</td>
+                    <td colspan="5" class="text-center text-muted py-4">No transactions yet.</td>
                   </tr>
                 @endforelse
               </tbody>
             </table>
-          </div>
-        </div>
-      </div>
-
-      <div class="row g-4">
-        <div class="col-md-4">
-          <div class="card">
-            <div class="card-body">
-              <p class="text-sm text-uppercase text-muted mb-1">Successful</p>
-              <h4 class="mb-0">{{ $successfulPaymentsCount }}</h4>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card">
-            <div class="card-body">
-              <p class="text-sm text-uppercase text-muted mb-1">Pending</p>
-              <h4 class="mb-0">{{ $pendingPaymentsCount }}</h4>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card">
-            <div class="card-body">
-              <p class="text-sm text-uppercase text-muted mb-1">Failed</p>
-              <h4 class="mb-0">{{ $failedPaymentsCount }}</h4>
-            </div>
           </div>
         </div>
       </div>

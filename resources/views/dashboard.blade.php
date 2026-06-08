@@ -198,6 +198,74 @@
     </div>
   </div>
 
+  {{-- Live Energy Widget --}}
+  <div class="row g-4 mb-4">
+    <div class="col-xl-3 col-sm-6">
+      <div class="card metric-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <p class="text-sm text-uppercase text-muted mb-1">Live Power Draw</p>
+              <h4 class="mb-1" id="widget-power">-- W</h4>
+              <span class="text-xs text-muted">Current consumption</span>
+            </div>
+            <span class="metric-icon bg-gradient-danger text-white">
+              <i class="fas fa-plug"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+      <div class="card metric-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <p class="text-sm text-uppercase text-muted mb-1">Voltage</p>
+              <h4 class="mb-1" id="widget-voltage">-- V</h4>
+              <span class="text-xs text-muted">Live from meter</span>
+            </div>
+            <span class="metric-icon bg-gradient-info text-white">
+              <i class="fas fa-wave-square"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+      <div class="card metric-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <p class="text-sm text-uppercase text-muted mb-1">Current</p>
+              <h4 class="mb-1" id="widget-current">-- A</h4>
+              <span class="text-xs text-muted">Live from meter</span>
+            </div>
+            <span class="metric-icon bg-gradient-warning text-white">
+              <i class="fas fa-tachometer-alt"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+      <div class="card metric-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <p class="text-sm text-uppercase text-muted mb-1">Today's Consumption</p>
+              <h4 class="mb-1" id="widget-today">-- kWh</h4>
+              <span class="text-xs text-muted">Total used today</span>
+            </div>
+            <span class="metric-icon bg-gradient-success text-white">
+              <i class="fas fa-calendar-day"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <footer class="footer pt-4">
     <div class="container-fluid px-0">
       <div class="copyright text-center text-sm text-muted text-lg-start">
@@ -223,9 +291,7 @@
 
   function fetchMeterUnit() {
     return fetch('/meter-unit', {
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest'
-      }
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
       .then(response => response.json())
       .then(data => {
@@ -237,8 +303,23 @@
       .catch(error => console.error('Error fetching meter data:', error));
   }
 
+  function fetchEnergyWidgets() {
+    return fetch("{{ route('usage.latest') }}", {
+      headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      cache: 'no-store',
+    })
+      .then(r => r.json())
+      .then(data => {
+        document.getElementById('widget-power').textContent   = Number(data.power   || 0).toFixed(2) + ' W';
+        document.getElementById('widget-voltage').textContent = Number(data.voltage || 0).toFixed(2) + ' V';
+        document.getElementById('widget-current').textContent = Number(data.current || 0).toFixed(2) + ' A';
+        document.getElementById('widget-today').textContent   = Number(data.buble   || 0).toFixed(6) + ' kWh';
+      })
+      .catch(error => console.error('Error fetching energy widgets:', error));
+  }
+
   function refreshDashboardUnit() {
-    Promise.allSettled([runTask(), fetchMeterUnit()]);
+    Promise.allSettled([runTask(), fetchMeterUnit(), fetchEnergyWidgets()]);
   }
 
   document.addEventListener('DOMContentLoaded', function () {

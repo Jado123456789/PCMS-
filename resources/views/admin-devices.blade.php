@@ -55,6 +55,7 @@
               <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Status</th>
               <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Last Seen</th>
               <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Update</th>
+              <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -112,6 +113,33 @@
                     </div>
                     <button type="submit" class="btn btn-sm bg-gradient-primary mb-0">Save Device</button>
                   </form>
+                </td>
+                <td>
+                  <div class="d-flex flex-column gap-2" style="min-width:160px">
+                    {{-- Toggle Relay --}}
+                    <form method="POST" action="{{ route('admin.devices.relay', $device->user_id) }}">
+                      @csrf
+                      <button type="submit" class="btn btn-sm w-100 mb-0 {{ (int) $device->connected === 1 ? 'bg-gradient-danger' : 'bg-gradient-success' }}">
+                        <i class="fas fa-power-off me-1"></i>
+                        {{ (int) $device->connected === 1 ? 'Cut Power' : 'Restore Power' }}
+                      </button>
+                    </form>
+                    {{-- Manual Top-up --}}
+                    <form method="POST" action="{{ route('admin.devices.topup', $device->user_id) }}" class="d-flex gap-1">
+                      @csrf
+                      <input type="number" name="amount" class="form-control form-control-sm" placeholder="RWF" min="1" required>
+                      <button type="submit" class="btn btn-sm bg-gradient-info mb-0 text-nowrap">
+                        <i class="fas fa-plus"></i> Top Up
+                      </button>
+                    </form>
+                    {{-- Force Confirm --}}
+                    <form method="POST" action="{{ route('admin.payments.confirm', $device->user_id) }}">
+                      @csrf
+                      <button type="submit" class="btn btn-sm btn-outline-warning w-100 mb-0">
+                        <i class="fas fa-check me-1"></i>Confirm Pending
+                      </button>
+                    </form>
+                  </div>
                 </td>
               </tr>
             @empty

@@ -43,6 +43,25 @@
     </div>
   </div>
 
+  {{-- Export Buttons --}}
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <a href="{{ route('admin.export.payments') }}" class="btn bg-gradient-success w-100 mb-0">
+        <i class="fas fa-download me-2"></i>Export All Payments CSV
+      </a>
+    </div>
+    <div class="col-md-4">
+      <a href="{{ route('admin.export.customers') }}" class="btn bg-gradient-info w-100 mb-0">
+        <i class="fas fa-download me-2"></i>Export All Customers CSV
+      </a>
+    </div>
+    <div class="col-md-4">
+      <a href="{{ route('admin.export.usage') }}" class="btn bg-gradient-primary w-100 mb-0">
+        <i class="fas fa-download me-2"></i>Export All Usage CSV
+      </a>
+    </div>
+  </div>
+
   <div class="row g-4">
     <div class="col-lg-8">
       <div class="card admin-panel">
